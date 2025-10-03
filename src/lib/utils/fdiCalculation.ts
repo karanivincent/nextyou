@@ -83,7 +83,31 @@ export function calculateFDI(data: FormData): FDIResult {
 export function generatePrompt(data: FormData, fdiResult: FDIResult): string {
 	const { fdi } = fdiResult;
 
-	return `You are an expert sports medicine physician and body transformation specialist with deep understanding of exercise physiology, biomechanics, and realistic human body adaptation timelines.
+	return `You are an expert in sports science and exercise medicine, as well as an expert in professional full-body studio photography. Your task is to design an AI-assisted model that visualizes a user's potential physical development based on their uploaded full-body photo and selected personal parameters.
+
+The model must balance scientific accuracy (training, nutrition, recovery, physiology) with a realistic and engaging user experience. Since the results are presented in a B2C setting, they should be realistic and achievable, avoiding exaggerated or extreme transformations.
+
+CALCULATED FDI (Final Development Index): ${fdi}
+Range: 0.349 (minimum) to 1.921 (maximum)
+
+FDI Interpretation:
+- FDI < 1 → body composition becomes slightly leaner and less muscular (but still healthy, not anorexic)
+- FDI > 1 → body composition shows more muscle development, improved definition, and a generally sportier look
+- Border values show the most pronounced development
+- Increment effect: changes between 1.0 and 1.1 are subtle, while changes between 1.5 and 1.6 are much more visible
+
+Current FDI Analysis:
+${fdi < 1.0 ? `- FDI = ${fdi} → body composition becomes leaner with less muscle mass than baseline` : ''}
+${fdi >= 1.0 && fdi < 1.2 ? `- FDI = ${fdi} → subtle improvements in muscle tone and athletic appearance` : ''}
+${fdi >= 1.2 && fdi < 1.5 ? `- FDI = ${fdi} → noticeable muscle development and improved athletic definition` : ''}
+${fdi >= 1.5 ? `- FDI = ${fdi} → significant muscle development with pronounced athletic physique` : ''}
+
+INSTRUCTION:
+Generate a high-quality, centered full-body image of the user that reflects the change in body composition according to their calculated FDI value of ${fdi}.
+
+- Use the uploaded photo as a base reference
+- Apply transformations subtly and realistically, corresponding to the FDI value
+- Maintain scientific plausibility and avoid exaggerated, unrealistic physiques
 
 TASK: Generate a scientifically accurate fitness transformation photo showing realistic results after ${data.timeframe} ${data.timeframe === 1 ? 'month' : 'months'} of consistent training.
 
@@ -149,32 +173,46 @@ CRITICAL TRANSFORMATION REQUIREMENTS:
    - Sleep quality (${data.sleep}/10): ${data.sleep >= 7 ? 'Optimal recovery - better results' : data.sleep >= 4 ? 'Moderate recovery - average results' : 'Poor recovery - limited results'}
    - Stress level (${data.stress}/10): ${data.stress <= 4 ? 'Low stress - optimal hormonal environment' : data.stress <= 7 ? 'Moderate stress - slightly impaired recovery' : 'High stress - significantly reduced progress'}
 
-6. PHOTOGRAPHY & PRESENTATION:
-   - Modern gym environment (clean, well-lit)
-   - Subject wearing black athletic shorts (no shirt for clear comparison)
-   - Same lighting, angle, and pose as original photo
-   - Neutral, determined facial expression
+6. PHOTOGRAPHY & PRESENTATION REQUIREMENTS:
+   - Setting: A modern, well-lit gym with visible fitness equipment
+   - Outfit: Black athletic shorts only (upper body exposed for clear comparison)
+   - Pose: Standing naturally as if taking a progress photo
+   - Expression: If face is visible, show a determined look; if not, crop photo from neck up
+   - Style: Realistic photography, not overly stylized or bodybuilder-like
+   - High-quality, centered full-body image
+   - Ensure proportional, natural body adjustments that match the FDI value of ${fdi}
    - Maintain exact same person identity and facial features
    - Natural skin texture (no airbrushing or fake tan)
-   - Realistic muscle striations and vascularity for body fat level
+   - Same lighting and angle as original photo
 
-AVOID THESE COMMON AI TRANSFORMATION ERRORS:
-❌ DO NOT create exaggerated "social media transformation" results
-❌ DO NOT add 20kg of muscle in 8 weeks (biologically impossible)
-❌ DO NOT show sub-8% body fat unless timeframe and deficit support it
-❌ DO NOT add fake vascularity or unnatural muscle definition
+CRITICAL REQUIREMENTS - AVOID THESE ERRORS:
+❌ DO NOT create exaggerated or unrealistic transformations
+❌ DO NOT ignore the FDI value of ${fdi} - this is the PRIMARY guide for body composition changes
+❌ DO NOT add excessive muscle mass beyond what FDI ${fdi} indicates
+❌ DO NOT create "Instagram transformation" or bodybuilder physiques
 ❌ DO NOT change the person's face, bone structure, or identifying features
-❌ DO NOT create "Instagram filter" smooth skin or fake lighting
-❌ DO NOT ignore the calculated FDI value (${fdi})
+❌ DO NOT use fake lighting, airbrushing, or unrealistic skin
+❌ DO NOT show changes that are biologically impossible for ${data.timeframe} ${data.timeframe === 1 ? 'month' : 'months'}
+❌ REMEMBER: Changes between FDI 1.0-1.1 are SUBTLE, changes between 1.5-1.6 are MORE VISIBLE
+❌ If FDI < 1.0, body should be LEANER with LESS muscle, not more muscular
 
 VERIFICATION CHECKLIST:
-✓ Transformation aligns with FDI value ${fdi}
+✓ Transformation aligns PRECISELY with FDI value ${fdi}
 ✓ Changes are achievable in ${data.timeframe} ${data.timeframe === 1 ? 'month' : 'months'}
 ✓ Body fat percentage change is realistic for ${data.nutrition} protocol
 ✓ Muscle gain matches training style (${data.style}) and intensity (${data.intensity})
 ✓ Recovery factors (sleep ${data.sleep}/10, stress ${data.stress}/10) are reflected
-✓ Same person, same pose, same environment
+✓ Same person, same pose, modern gym environment
+✓ Black athletic shorts, determined expression
 ✓ Professional sports medicine accuracy maintained
+✓ Realistic photography style, not overly stylized
 
-Generate the transformation image now, strictly following these evidence-based guidelines.`;
+FINAL INSTRUCTION:
+Generate a high-quality, centered full-body transformation image that shows body composition changes corresponding EXACTLY to FDI = ${fdi}.
+- Use the uploaded photo as your base reference
+- Apply subtle, realistic changes that match the FDI interpretation above
+- Maintain scientific plausibility - this is for a B2C product, so results must be realistic and achievable
+- The FDI value ${fdi} is your PRIMARY guide - follow it precisely
+
+Generate the transformation image now.`;
 }

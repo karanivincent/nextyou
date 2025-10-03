@@ -85,7 +85,14 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Extract generated image from response
 		const candidates = data.candidates;
 		if (!candidates || candidates.length === 0) {
-			throw new Error('No image generated in response');
+			console.error('No candidates in response:', JSON.stringify(data, null, 2));
+			throw new Error('No image generated in response. The AI may have rejected the request.');
+		}
+
+		// Check if content and parts exist
+		if (!candidates[0].content || !candidates[0].content.parts) {
+			console.error('Invalid response structure:', JSON.stringify(data, null, 2));
+			throw new Error('Invalid response structure from Gemini API');
 		}
 
 		const parts = candidates[0].content.parts;
@@ -99,6 +106,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		if (!generatedImageBase64) {
+			console.error('No image data in parts:', JSON.stringify(parts, null, 2));
 			throw new Error('No image data found in response');
 		}
 

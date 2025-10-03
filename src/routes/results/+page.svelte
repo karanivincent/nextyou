@@ -60,7 +60,7 @@
 							<img
 								src={data.photo}
 								alt="Before"
-								class="w-full rounded-xl object-cover aspect-square"
+								class="w-full rounded-xl object-contain"
 							/>
 						</div>
 					{/if}
@@ -73,7 +73,7 @@
 						<img
 							src={generatedImage}
 							alt="After"
-							class="w-full rounded-xl object-cover aspect-square"
+							class="w-full rounded-xl object-contain"
 						/>
 					</div>
 				</div>
