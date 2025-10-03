@@ -67,7 +67,24 @@ export function calculateFDI(data: FormData): FDIResult {
 	const ri = sleepMultiplier * stressMultiplier * energyBalance;
 
 	// ===== FINAL FDI =====
-	const fdi = 0.35 * bi + 0.4 * ti + 0.25 * ri;
+	let fdi = 0.35 * bi + 0.4 * ti + 0.25 * ri;
+
+	// Normalize FDI to stay within valid range (0.349 - 1.921)
+	// Use logarithmic scaling for values above max to preserve relative differences
+	const FDI_MIN = 0.349;
+	const FDI_MAX = 1.921;
+
+	if (fdi > FDI_MAX) {
+		// For values above max, use logarithmic compression
+		const excess = fdi - FDI_MAX;
+		const compressed = Math.log(excess + 1) * 0.3; // Gentle compression
+		fdi = FDI_MAX + compressed;
+
+		// Hard cap at 2.5 for extreme cases
+		fdi = Math.min(fdi, 2.5);
+	} else if (fdi < FDI_MIN) {
+		fdi = FDI_MIN;
+	}
 
 	return {
 		fdi: Number(fdi.toFixed(3)),
@@ -96,18 +113,50 @@ FDI Interpretation:
 - Border values show the most pronounced development
 - Increment effect: changes between 1.0 and 1.1 are subtle, while changes between 1.5 and 1.6 are much more visible
 
-Current FDI Analysis:
-${fdi < 1.0 ? `- FDI = ${fdi} → body composition becomes leaner with less muscle mass than baseline` : ''}
-${fdi >= 1.0 && fdi < 1.2 ? `- FDI = ${fdi} → subtle improvements in muscle tone and athletic appearance` : ''}
-${fdi >= 1.2 && fdi < 1.5 ? `- FDI = ${fdi} → noticeable muscle development and improved athletic definition` : ''}
-${fdi >= 1.5 ? `- FDI = ${fdi} → significant muscle development with pronounced athletic physique` : ''}
+Current FDI Analysis for FDI = ${fdi}:
+${
+		fdi < 1.0
+			? `- Body becomes LEANER with LESS muscle mass (deficit/cardio focused)
+- Expect 3-5% body fat reduction
+- Minimal muscle growth, focus on definition through fat loss`
+			: fdi >= 1.0 && fdi < 1.2
+				? `- SUBTLE muscle tone improvements
+- Expect 1-3kg lean mass gain
+- Slight definition increase, beginner-level changes`
+				: fdi >= 1.2 && fdi < 1.5
+					? `- NOTICEABLE muscle development
+- Expect 4-7kg lean mass gain
+- Visible chest, shoulder, and arm development
+- Clear athletic appearance emerging`
+					: fdi >= 1.5 && fdi < 1.8
+						? `- SIGNIFICANT muscle development
+- Expect 8-12kg lean mass gain over ${data.timeframe} months
+- Chest is visibly fuller and more defined
+- Shoulders are broader and more developed
+- Arms show clear muscle definition and size increase
+- Back is wider and more defined
+- Legs show noticeable quad and hamstring development
+- Six-pack abs becoming visible (if nutrition supports it)`
+						: fdi >= 1.8
+							? `- DRAMATIC transformation (near-maximum natural potential for timeframe)
+- Expect 12-15kg lean mass gain over ${data.timeframe} months
+- CHEST: Significantly fuller with clear upper/mid/lower definition
+- SHOULDERS: Notably broader, creating V-taper, deltoids are round and capped
+- ARMS: Biceps and triceps are visibly larger with clear definition
+- BACK: Substantially wider with visible lat spread and definition
+- CORE: Well-defined abs with visible obliques
+- LEGS: Thick, developed quads and hamstrings
+- Overall physique is impressively athletic and muscular but still naturally achievable`
+							: ''
+	}
 
 INSTRUCTION:
 Generate a high-quality, centered full-body image of the user that reflects the change in body composition according to their calculated FDI value of ${fdi}.
 
 - Use the uploaded photo as a base reference
-- Apply transformations subtly and realistically, corresponding to the FDI value
-- Maintain scientific plausibility and avoid exaggerated, unrealistic physiques
+- Apply transformations that CLEARLY SHOW the magnitude indicated by FDI ${fdi}
+- ${fdi >= 1.5 ? 'For this HIGH FDI value, changes MUST be dramatic and clearly visible - not subtle!' : 'Apply realistic changes corresponding to the FDI value'}
+- Maintain scientific plausibility but ensure changes are VISIBLE and PRONOUNCED
 
 TASK: Generate a scientifically accurate fitness transformation photo showing realistic results after ${data.timeframe} ${data.timeframe === 1 ? 'month' : 'months'} of consistent training.
 
@@ -209,10 +258,24 @@ VERIFICATION CHECKLIST:
 
 FINAL INSTRUCTION:
 Generate a high-quality, centered full-body transformation image that shows body composition changes corresponding EXACTLY to FDI = ${fdi}.
+
+${
+		fdi >= 1.5
+			? `**CRITICAL FOR HIGH FDI (${fdi}):**
+You MUST create a DRAMATIC, CLEARLY VISIBLE transformation. This person has trained ${data.timeframe} months at high intensity with optimal conditions.
+- The transformation should be IMPRESSIVE and MOTIVATING
+- Muscle development should be OBVIOUS when comparing before/after
+- This is NOT a subtle change - make it BOLD and CLEAR
+- Think: "Wow, that's a real transformation!" not "Is there even a difference?"
+- The person should look SIGNIFICANTLY more muscular and athletic`
+			: `- Apply realistic changes that match the FDI interpretation above
+- Ensure changes are visible but not exaggerated`
+	}
+
 - Use the uploaded photo as your base reference
-- Apply subtle, realistic changes that match the FDI interpretation above
 - Maintain scientific plausibility - this is for a B2C product, so results must be realistic and achievable
 - The FDI value ${fdi} is your PRIMARY guide - follow it precisely
+- Changes MUST be clearly visible and match the muscle mass gain estimates provided above
 
 Generate the transformation image now.`;
 }
