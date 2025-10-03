@@ -7,6 +7,7 @@
 		title: string;
 		subtitle?: string;
 		onNext: () => void;
+		onBack?: () => void;
 		nextDisabled?: boolean;
 		nextLabel?: string;
 		loading?: boolean;
@@ -19,6 +20,7 @@
 		title,
 		subtitle,
 		onNext,
+		onBack,
 		nextDisabled = false,
 		nextLabel = 'Next',
 		loading = false,
@@ -35,9 +37,26 @@
 		</div>
 	</div>
 
-	<!-- Progress Text -->
-	<div class="px-6 py-3">
-		<p class="text-sm text-gray-500 text-center">{currentStep} / {totalSteps}</p>
+	<!-- Header with Back Button and Progress -->
+	<div class="px-6 py-3 flex items-center justify-between">
+		{#if onBack}
+			<button onclick={onBack} class="flex items-center gap-1 text-gray-600">
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M15 19l-7-7 7-7"
+					></path>
+				</svg>
+				<span>Back</span>
+			</button>
+		{:else}
+			<div></div>
+		{/if}
+		<p class="text-sm text-gray-500">{currentStep} / {totalSteps}</p>
+		<div class="w-16"></div>
+		<!-- Spacer for alignment -->
 	</div>
 
 	<!-- Content Area -->

@@ -7,7 +7,7 @@
 	import { formData, updateField } from '$lib/stores/formData';
 	import type { AgeRange, Gender, TrainingStyle, Intensity, NutritionGoal } from '$lib/types';
 
-	let currentStep = $state(1);
+	let currentStep = $state(0); // 0 = welcome screen, 1-11 = form steps
 	const totalSteps = 11;
 
 	let data = $state($formData);
@@ -69,10 +69,18 @@
 	}
 
 	function handleNext() {
-		if (currentStep < totalSteps) {
+		if (currentStep === 0) {
+			currentStep = 1; // Go from welcome to first form step
+		} else if (currentStep < totalSteps) {
 			currentStep++;
 		} else {
 			// Will be handled by auto-submit in $effect
+		}
+	}
+
+	function handleBack() {
+		if (currentStep > 0) {
+			currentStep--;
 		}
 	}
 
@@ -104,7 +112,45 @@
 	}
 </script>
 
-{#if currentStep === 1}
+{#if currentStep === 0}
+	<!-- Welcome Screen -->
+	<div class="min-h-screen flex flex-col bg-white">
+		<!-- Back Button (Optional - can be hidden on welcome screen) -->
+		<div class="p-4">
+			<button onclick={handleBack} class="flex items-center gap-2 text-gray-600">
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M15 19l-7-7 7-7"
+					></path>
+				</svg>
+				<span>Back</span>
+			</button>
+		</div>
+
+		<!-- Content Area -->
+		<div class="flex-1 flex flex-col items-center justify-center px-6 py-12">
+			<!-- Logo -->
+			<img src="/nextyoulogo.png" alt="NextYou Logo" class="w-64 mb-12" />
+
+			<!-- Tagline -->
+			<h1 class="text-2xl text-gray-700 text-center mb-2">Unlock your next self</h1>
+			<p class="text-xl text-gray-700 text-center">with AI 💪</p>
+		</div>
+
+		<!-- Bottom Button -->
+		<div class="p-6 pb-8">
+			<button
+				onclick={handleNext}
+				class="w-full min-h-14 bg-primary text-white font-semibold text-lg rounded-full py-4 px-8"
+			>
+				I'm ready
+			</button>
+		</div>
+	</div>
+{:else if currentStep === 1}
 	<!-- Step 1: Age -->
 	<StepLayout
 		{currentStep}
@@ -112,6 +158,7 @@
 		title="Age"
 		subtitle="How old are you? Age helps us personalize your fitness projection."
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(1)}
 	>
 		<div class="flex flex-col gap-3">
@@ -149,6 +196,7 @@
 		title="Gender"
 		subtitle="We use this to understand your body composition and muscle development potential."
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(2)}
 	>
 		<div class="flex flex-col gap-3">
@@ -180,6 +228,7 @@
 		title="Training Frequency"
 		subtitle="How many times per week do you plan to work out?"
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(3)}
 	>
 		<div class="flex flex-col gap-3">
@@ -217,6 +266,7 @@
 		title="Set your timeframe"
 		subtitle="How many weeks until you want to see results?"
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(4)}
 	>
 		<div class="flex flex-col gap-3">
@@ -254,6 +304,7 @@
 		title="Training style"
 		subtitle="What type of training do you prefer?"
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(5)}
 	>
 		<div class="flex flex-col gap-3">
@@ -285,6 +336,7 @@
 		title="Workout Intensity"
 		subtitle="How hard do you plan to push yourself?"
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(6)}
 	>
 		<div class="flex flex-col gap-3">
@@ -316,6 +368,7 @@
 		title="Nutrition goal"
 		subtitle="What's your primary nutrition objective?"
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(7)}
 	>
 		<div class="flex flex-col gap-3">
@@ -347,6 +400,7 @@
 		title="Sleep quality"
 		subtitle="How would you rate your average sleep quality?"
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(8)}
 	>
 		<SliderInput value={data.sleep} min={1} max={10} onChange={(val) => updateField('sleep', val)} />
@@ -359,6 +413,7 @@
 		title="Stress level"
 		subtitle="How stressed do you feel on a daily basis?"
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(9)}
 	>
 		<SliderInput
@@ -376,6 +431,7 @@
 		title="Upload photo"
 		subtitle="Upload a current full-body photo for the best results."
 		onNext={handleNext}
+		onBack={handleBack}
 		nextDisabled={!isStepValid(10)}
 	>
 		<ImageUpload onImageSelect={(base64) => updateField('photo', base64)} />
