@@ -225,24 +225,24 @@
 	<StepLayout
 		{currentStep}
 		{totalSteps}
-		title="Training Frequency"
-		subtitle="How many times per week do you plan to work out?"
+		title="Training frequency"
+		subtitle="Tell us how many days a week you plan to train."
 		onNext={handleNext}
 		onBack={handleBack}
 		nextDisabled={!isStepValid(3)}
 	>
 		<div class="flex flex-col gap-3">
 			<SelectionButton
-				label="1 - 2"
+				label="< 2"
 				value="1"
 				selected={data.frequency === 1}
 				onClick={() => updateField('frequency', 1)}
 			/>
 			<SelectionButton
-				label="3"
-				value="3"
-				selected={data.frequency === 3}
-				onClick={() => updateField('frequency', 3)}
+				label="2 - 3"
+				value="2"
+				selected={data.frequency === 2}
+				onClick={() => updateField('frequency', 2)}
 			/>
 			<SelectionButton
 				label="4 - 5"
@@ -251,7 +251,7 @@
 				onClick={() => updateField('frequency', 4)}
 			/>
 			<SelectionButton
-				label="6+"
+				label="> 6"
 				value="6"
 				selected={data.frequency === 6}
 				onClick={() => updateField('frequency', 6)}
@@ -264,35 +264,26 @@
 		{currentStep}
 		{totalSteps}
 		title="Set your timeframe"
-		subtitle="How many weeks until you want to see results?"
+		subtitle="How many months until you want to see results?"
 		onNext={handleNext}
 		onBack={handleBack}
 		nextDisabled={!isStepValid(4)}
 	>
-		<div class="flex flex-col gap-3">
-			<SelectionButton
-				label="4 weeks"
-				value="4"
-				selected={data.timeframe === 4}
-				onClick={() => updateField('timeframe', 4)}
-			/>
-			<SelectionButton
-				label="8 weeks"
-				value="8"
-				selected={data.timeframe === 8}
-				onClick={() => updateField('timeframe', 8)}
-			/>
-			<SelectionButton
-				label="12 weeks"
-				value="12"
-				selected={data.timeframe === 12}
-				onClick={() => updateField('timeframe', 12)}
-			/>
-			<SelectionButton
-				label="16 weeks"
-				value="16"
-				selected={data.timeframe === 16}
-				onClick={() => updateField('timeframe', 16)}
+		<div class="flex flex-col gap-4">
+			<!-- Display selected value -->
+			<div class="text-center">
+				<p class="text-6xl font-bold text-primary mb-2">{data.timeframe || 1}</p>
+				<p class="text-gray-600">
+					{data.timeframe === 1 ? 'month' : 'months'}
+				</p>
+			</div>
+
+			<!-- Slider -->
+			<SliderInput
+				value={data.timeframe || 1}
+				min={1}
+				max={12}
+				onChange={(val) => updateField('timeframe', val)}
 			/>
 		</div>
 	</StepLayout>

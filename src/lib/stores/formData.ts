@@ -6,7 +6,7 @@ const initialFormData: FormData = {
 	age: null,
 	gender: null,
 	frequency: null,
-	timeframe: null,
+	timeframe: 1, // Default to 1 month
 	style: null,
 	intensity: null,
 	nutrition: null,
