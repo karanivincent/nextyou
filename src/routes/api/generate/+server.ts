@@ -25,45 +25,105 @@ export const POST: RequestHandler = async ({ request }) => {
 			);
 		}
 
-		// TODO: Get actual API endpoint from team
-		// For now, using placeholder endpoint
-		const AI_API_ENDPOINT = process.env.AI_API_ENDPOINT || 'https://placeholder-api.example.com/generate';
+		// Get Gemini API key from environment
+		const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-		// Call team's AI API
-		const response = await fetch(AI_API_ENDPOINT, {
+		if (!GEMINI_API_KEY) {
+			throw new Error('GEMINI_API_KEY not configured');
+		}
+
+		// Build transformation prompt based on user inputs
+		const prompt = `Transform this fitness photo to show realistic changes after ${body.timeframe} ${body.timeframe === 1 ? 'month' : 'months'} of consistent training.
+
+Training parameters:
+- Age group: ${body.age}
+- Gender: ${body.gender}
+- Training frequency: ${body.frequency} sessions per week
+- Training style: ${body.style}
+- Workout intensity: ${body.intensity}
+- Nutrition goal: ${body.nutrition}
+- Sleep quality: ${body.sleep}/10
+- Stress level: ${body.stress}/10
+
+Generate a realistic transformation showing:
+- Muscle development appropriate for ${body.style} training at ${body.intensity} intensity
+- Body composition changes based on ${body.nutrition} nutrition goal
+- Natural, achievable results for ${body.timeframe} ${body.timeframe === 1 ? 'month' : 'months'} timeframe
+- Same lighting, pose, and background as the original photo
+- Maintain the person's identity and facial features
+- Realistic body fat percentage changes
+- Natural skin texture and muscle definition
+
+IMPORTANT: Keep the transformation realistic and achievable for the given timeframe. Do not create exaggerated or unrealistic changes.`;
+
+		// Remove data URL prefix from base64 image
+		const imageData = body.photo.replace(/^data:image\/\w+;base64,/, '');
+
+		// Gemini 2.5 Flash Image API endpoint
+		const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
+
+		// Call Gemini API
+		const response = await fetch(GEMINI_ENDPOINT, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				// Add API key if needed
-				// 'Authorization': `Bearer ${process.env.AI_API_KEY}`
+				'x-goog-api-key': GEMINI_API_KEY
 			},
 			body: JSON.stringify({
-				age: body.age,
-				gender: body.gender,
-				frequency: body.frequency,
-				timeframe: body.timeframe,
-				style: body.style,
-				intensity: body.intensity,
-				nutrition: body.nutrition,
-				sleep: body.sleep,
-				stress: body.stress,
-				photo: body.photo
+				contents: [
+					{
+						parts: [
+							{
+								inline_data: {
+									mime_type: 'image/jpeg',
+									data: imageData
+								}
+							},
+							{
+								text: prompt
+							}
+						]
+					}
+				],
+				generationConfig: {
+					responseModalities: ['Image']
+				}
 			})
 		});
 
 		if (!response.ok) {
-			throw new Error(`AI API responded with status: ${response.status}`);
+			const errorText = await response.text();
+			throw new Error(`Gemini API error (${response.status}): ${errorText}`);
 		}
 
-		const aiResponse = await response.json();
+		const data = await response.json();
 
-		// Return the AI-generated image
+		// Extract generated image from response
+		const candidates = data.candidates;
+		if (!candidates || candidates.length === 0) {
+			throw new Error('No image generated in response');
+		}
+
+		const parts = candidates[0].content.parts;
+		let generatedImageBase64 = null;
+
+		for (const part of parts) {
+			if (part.inline_data) {
+				generatedImageBase64 = part.inline_data.data;
+				break;
+			}
+		}
+
+		if (!generatedImageBase64) {
+			throw new Error('No image data found in response');
+		}
+
+		// Return as data URL for easy display
 		return json({
-			generatedImageUrl: aiResponse.generatedImageUrl,
-			generatedImageBase64: aiResponse.generatedImageBase64
+			generatedImageBase64: `data:image/png;base64,${generatedImageBase64}`
 		} as GenerateResponse);
 	} catch (error) {
-		console.error('API Error:', error);
+		console.error('Gemini API Error:', error);
 		return json(
 			{
 				error: error instanceof Error ? error.message : 'Failed to generate transformation'
