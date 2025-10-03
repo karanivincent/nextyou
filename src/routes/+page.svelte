@@ -11,18 +11,68 @@
 	const totalSteps = 11;
 
 	let data = $state($formData);
+	let isSubmitting = $state(false);
+	let submitError = $state<string | null>(null);
 
 	// Subscribe to store changes
 	$effect(() => {
 		data = $formData;
 	});
 
+	// Auto-submit when reaching step 11
+	$effect(() => {
+		if (currentStep === 11 && !isSubmitting && !submitError) {
+			handleSubmit();
+		}
+	});
+
+	async function handleSubmit() {
+		isSubmitting = true;
+		submitError = null;
+
+		try {
+			const response = await fetch('/api/generate', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					age: data.age,
+					gender: data.gender,
+					frequency: data.frequency,
+					timeframe: data.timeframe,
+					style: data.style,
+					intensity: data.intensity,
+					nutrition: data.nutrition,
+					sleep: data.sleep,
+					stress: data.stress,
+					photo: data.photo
+				})
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.error || 'Failed to generate transformation');
+			}
+
+			// Store the result and navigate
+			if (typeof window !== 'undefined') {
+				sessionStorage.setItem('generatedImage', result.generatedImageUrl || result.generatedImageBase64);
+			}
+
+			goto('/results');
+		} catch (error) {
+			submitError = error instanceof Error ? error.message : 'Something went wrong';
+			isSubmitting = false;
+		}
+	}
+
 	function handleNext() {
 		if (currentStep < totalSteps) {
 			currentStep++;
 		} else {
-			// Submit form
-			goto('/results');
+			// Will be handled by auto-submit in $effect
 		}
 	}
 
@@ -335,34 +385,54 @@
 	<StepLayout
 		{currentStep}
 		{totalSteps}
-		title="Generating your transformation..."
-		subtitle="This may take a few moments. Please wait."
-		onNext={handleNext}
-		loading={true}
-		nextLabel="View Results"
+		title={submitError ? 'Error' : 'Generating your transformation...'}
+		subtitle={submitError ? submitError : 'This may take a few moments. Please wait.'}
+		onNext={() => submitError ? handleSubmit() : handleNext()}
+		loading={isSubmitting}
+		nextDisabled={isSubmitting}
+		nextLabel={submitError ? 'Retry' : 'View Results'}
 	>
 		<div class="flex flex-col items-center justify-center gap-6 py-12">
-			<svg
-				class="animate-spin h-20 w-20 text-primary"
-				xmlns="http://www.w3.org/2000/svg"
-				fill="none"
-				viewBox="0 0 24 24"
-			>
-				<circle
-					class="opacity-25"
-					cx="12"
-					cy="12"
-					r="10"
+			{#if submitError}
+				<!-- Error State -->
+				<svg
+					class="h-20 w-20 text-red-500"
+					fill="none"
 					stroke="currentColor"
-					stroke-width="4"
-				></circle>
-				<path
-					class="opacity-75"
-					fill="currentColor"
-					d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-				></path>
-			</svg>
-			<p class="text-gray-600 text-center">Creating your AI-powered fitness projection...</p>
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<p class="text-red-600 text-center font-medium">{submitError}</p>
+			{:else}
+				<!-- Loading State -->
+				<svg
+					class="animate-spin h-20 w-20 text-primary"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<circle
+						class="opacity-25"
+						cx="12"
+						cy="12"
+						r="10"
+						stroke="currentColor"
+						stroke-width="4"
+					></circle>
+					<path
+						class="opacity-75"
+						fill="currentColor"
+						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+					></path>
+				</svg>
+				<p class="text-gray-600 text-center">Creating your AI-powered fitness projection...</p>
+			{/if}
 		</div>
 	</StepLayout>
 {/if}
