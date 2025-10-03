@@ -72,7 +72,7 @@
 	>
 		{#if preview}
 			<!-- Image Preview -->
-			<img src={preview} alt="Preview" class="w-full h-full object-cover rounded-2xl" />
+			<img src={preview} alt="Preview" class="w-full h-full object-contain rounded-2xl" />
 		{:else}
 			<!-- Upload Icon -->
 			<svg
