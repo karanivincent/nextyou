@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { GenerateRequest, GenerateResponse } from '$lib/types';
+import { calculateFDI, generatePrompt } from '$lib/utils/fdiCalculation';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
@@ -26,35 +27,18 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		// Get Gemini API key from environment
-		const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+		const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
 		if (!GEMINI_API_KEY) {
 			throw new Error('GEMINI_API_KEY not configured');
 		}
 
-		// Build transformation prompt based on user inputs
-		const prompt = `Transform this fitness photo to show realistic changes after ${body.timeframe} ${body.timeframe === 1 ? 'month' : 'months'} of consistent training.
+		// Calculate FDI (Final Development Index) based on user inputs
+		const fdiResult = calculateFDI(body);
+		console.log('Calculated FDI:', fdiResult);
 
-Training parameters:
-- Age group: ${body.age}
-- Gender: ${body.gender}
-- Training frequency: ${body.frequency} sessions per week
-- Training style: ${body.style}
-- Workout intensity: ${body.intensity}
-- Nutrition goal: ${body.nutrition}
-- Sleep quality: ${body.sleep}/10
-- Stress level: ${body.stress}/10
-
-Generate a realistic transformation showing:
-- Muscle development appropriate for ${body.style} training at ${body.intensity} intensity
-- Body composition changes based on ${body.nutrition} nutrition goal
-- Natural, achievable results for ${body.timeframe} ${body.timeframe === 1 ? 'month' : 'months'} timeframe
-- Same lighting, pose, and background as the original photo
-- Maintain the person's identity and facial features
-- Realistic body fat percentage changes
-- Natural skin texture and muscle definition
-
-IMPORTANT: Keep the transformation realistic and achievable for the given timeframe. Do not create exaggerated or unrealistic changes.`;
+		// Generate scientifically accurate prompt with FDI integration
+		const prompt = generatePrompt(body, fdiResult);
 
 		// Remove data URL prefix from base64 image
 		const imageData = body.photo.replace(/^data:image\/\w+;base64,/, '');
@@ -108,8 +92,8 @@ IMPORTANT: Keep the transformation realistic and achievable for the given timefr
 		let generatedImageBase64 = null;
 
 		for (const part of parts) {
-			if (part.inline_data) {
-				generatedImageBase64 = part.inline_data.data;
+			if (part.inlineData || part.inline_data) {
+				generatedImageBase64 = (part.inlineData || part.inline_data).data;
 				break;
 			}
 		}

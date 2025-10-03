@@ -68,7 +68,7 @@
 					<!-- Generated Photo -->
 					<div>
 						<p class="text-sm font-medium text-gray-700 mb-2">
-							After {data.timeframe} weeks
+							After {data.timeframe} {data.timeframe === 1 ? 'month' : 'months'}
 						</p>
 						<img
 							src={generatedImage}
